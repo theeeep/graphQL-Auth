@@ -1,13 +1,32 @@
 import express from "express";
 require("dotenv").config();
-const app = express();
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
 
-const PORT = process.env.PORT || 3000;
+async function init() {
+  const app = express();
+  const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.json({ message: "Server is up and running" });
-});
+  app.use(express.json());
 
-app.listen(PORT, () => {
-  console.log(`Server🚀 listening on ${PORT}`);
-});
+  // Create GraphQL Server
+  const gqlServer = new ApolloServer({
+    typeDefs: "",
+    resolvers: {},
+  });
+
+  // Start Server
+  await gqlServer.start();
+
+  app.get("/", (req, res) => {
+    res.json({ message: "Server is up and running" });
+  });
+
+  app.use("/graphql", expressMiddleware(gqlServer));
+
+  app.listen(PORT, () => {
+    console.log(`Server🚀 listening on ${PORT}`);
+  });
+}
+
+init();
