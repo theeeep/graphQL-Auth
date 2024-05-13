@@ -3,6 +3,7 @@ require("dotenv").config();
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServer } from "@apollo/server";
 import { User } from "graphql/user";
+import UserService from "services/user";
 
 async function init() {
   const app = express();
@@ -15,7 +16,7 @@ async function init() {
   });
   const gqlServer = new ApolloServer({
     typeDefs: `
-           
+           ${User.typeDefs}
             type Query {
               ${User.queries}
             }
@@ -37,7 +38,20 @@ async function init() {
   // Start the gql server
   await gqlServer.start();
 
-  app.use("/", expressMiddleware(gqlServer));
+  app.use(
+    "/",
+    expressMiddleware(gqlServer, {
+      context: async ({ req }) => {
+        const token = req.headers["token"];
+        try {
+          const user = UserService.decodeJWTTOKEN(token as string);
+          return { user };
+        } catch (error) {
+          return {};
+        }
+      },
+    })
+  );
   app.listen(PORT, () => console.log(`Server started at PORT:${PORT}`));
 }
 
