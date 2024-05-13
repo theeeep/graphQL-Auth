@@ -17,7 +17,7 @@ async function init() {
     typeDefs: `
            
             type Query {
-               hello:String
+              ${User.queries}
             }
 
             type Mutation {
